@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transmisión de Datos y Protocolo TCP/IP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #030712;
+            color: white;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            padding: 2rem;
+            box-sizing: border-box;
+            animation: slideIn 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background: rgba(17, 24, 39, 0.85);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 1100px;
+            backdrop-filter: blur(16px);
+            width: 95%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            z-index: 100;
+        }
+
+        .btn-nav {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            padding: 0.8rem 2.2rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-nav:hover {
+            background: #3b82f6;
+            color: #030712;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            transition: width 0.3s;
+            z-index: 1000;
+        }
+
+        .highlight-box {
+            @apply bg-slate-900/90 p-4 rounded-xl border-l-4 border-blue-500 text-left mb-3;
+        }
+
+        .card::-webkit-scrollbar { width: 6px; }
+        .card::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar" id="progress"></div>
+
+    <!-- Slide 0: Portada -->
+    <div class="slide active" id="slide-0">
+        <div class="card">
+            <span class="text-blue-400 font-bold uppercase tracking-widest text-xs mb-4 block">Ciencias de la Computación - 8vo Año</span>
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6">El Viaje de la <span class="gradient-text">Información</span></h1>
+            <p class="text-xl text-slate-400 mb-8">¿Cómo viajan los datos por Internet? Paquetes y el protocolo TCP/IP</p>
+            <div class="flex justify-center gap-8 text-blue-400">
+                <i class="fas fa-cubes text-4xl"></i>
+                <i class="fas fa-route text-4xl"></i>
+                <i class="fas fa-network-wired text-4xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 1: El Gran Rompecabezas -->
+    <div class="slide" id="slide-1">
+        <h2 class="text-4xl font-bold mb-6 text-blue-400">¿Por qué dividimos la información?</h2>
+        <div class="card text-left">
+            <div class="flex flex-col md:flex-row gap-8 items-center">
+                <div class="md:w-1/2 space-y-4">
+                    <p class="text-base text-slate-200 leading-relaxed">
+                        Cuando envías una foto, un video o un mensaje de voz por internet, la información **no viaja toda junta en un solo bloque gigante**. 
+                    </p>
+                    <p class="text-base text-slate-200 leading-relaxed">
+                        Si viajasen en un solo archivo pesado y la conexión sufriera una pequeña interferencia, tendrías que volver a descargar todo el archivo desde cero.
+                    </p>
+                    <div class="p-4 bg-blue-500/5 rounded-xl border-l-4 border-blue-500 text-xs text-slate-300">
+                        <strong>La analogía del puzzle:</strong> Es como enviar un castillo de LEGO gigante por correo postal. En lugar de mandar el castillo armado entero, lo desarmamos en pequeñas bolsitas numeradas y lo enviamos en cajas chicas.
+                    </div>
+                </div>
+                <div class="md:w-1/2 bg-slate-900/60 p-6 rounded-2xl border border-slate-800 text-center space-y-4">
+                    <i class="fas fa-puzzle-piece text-7xl text-blue-400 animate-pulse"></i>
+                    <h4 class="font-bold text-sm text-white">Conmutación de Paquetes</h4>
+                    <p class="text-xs text-slate-400">Internet divide cualquier archivo en pequeños fragmentos llamados **paquetes de datos** para que su viaje sea rápido, seguro y eficiente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2: Anatomía de un Paquete -->
+    <div class="slide" id="slide-2">
+        <h2 class="text-4xl font-bold mb-6 text-blue-400">¿Cómo es un Paquete de Datos?</h2>
+        <div class="card text-left">
+            <p class="text-slate-300 text-sm mb-6">Cada paquete de datos es como una carta postal inteligente. Para llegar a su destino con éxito, se divide en tres partes:</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-900/50 p-5 rounded-2xl border border-blue-800/30">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-info-circle text-2xl text-blue-400"></i>
+                        <h4 class="font-bold text-base">1. Cabecera (Header)</h4>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Contiene la información de control. Indica la **dirección IP de origen** (quién la envía), la **dirección IP de destino** (quién la recibe) y el número de orden del paquete.
+                    </p>
+                </div>
+                <div class="bg-slate-900/50 p-5 rounded-2xl border border-cyan-800/30">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-file-alt text-2xl text-cyan-400"></i>
+                        <h4 class="font-bold text-base">2. Datos (Payload)</h4>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Es el trozo de información real que se está transportando. Por ejemplo, un conjunto de píxeles de una foto, un milisegundo de una canción o una letra de un mensaje.
+                    </p>
+                </div>
+                <div class="bg-slate-900/50 p-5 rounded-2xl border border-purple-800/30">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-shield-alt text-2xl text-purple-400"></i>
+                        <h4 class="font-bold text-base">3. Cola (Trailer)</h4>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Contiene datos para verificar que el paquete no se haya corrompido ni dañado durante el viaje. Funciona como un sello de garantía de seguridad.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: El Protocolo IP (Direccionamiento) -->
+    <div class="slide" id="slide-3">
+        <h2 class="text-4xl font-bold mb-6 text-blue-400">El Protocolo IP: Las Direcciones</h2>
+        <div class="card text-left">
+            <div class="flex flex-col md:flex-row gap-8 items-center">
+                <div class="md:w-1/2 space-y-4">
+                    <p class="text-base text-slate-200 leading-relaxed">
+                        <strong>IP (Internet Protocol)</strong> es el encargado de dar las direcciones y dirigir los paquetes.
+                    </p>
+                    <ul class="text-xs space-y-2 text-slate-300">
+                        <li><i class="fas fa-check text-blue-400 mr-2"></i><strong>Dirección IP:</strong> Es una matrícula numérica única que tiene cada dispositivo conectado (ej. <code>192.168.1.15</code>).</li>
+                        <li><i class="fas fa-check text-blue-400 mr-2"></i><strong>Decide el camino:</strong> Los routers leen la IP de destino de cada paquete y deciden por qué cable o antena mandarlo para que llegue lo más rápido posible.</li>
+                    </ul>
+                </div>
+                <div class="md:w-1/2 bg-blue-950/20 p-6 rounded-2xl border border-blue-500/20">
+                    <h4 class="font-bold text-sm text-blue-300 mb-2 uppercase"><i class="fas fa-route mr-2"></i>El Gran Secreto de Internet</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        ¡Los paquetes no viajan todos juntos por la misma calle! Si un cable de red está muy congestionado, un paquete de tu foto puede viajar por Brasil y otro por Estados Unidos para llegar finalmente al celular de tu compañero de banco en Salto.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 4: El Protocolo TCP (El Organizador) -->
+    <div class="slide" id="slide-4">
+        <h2 class="text-4xl font-bold mb-6 text-blue-400">El Protocolo TCP: El Organizador</h2>
+        <div class="card text-left">
+            <div class="flex flex-col md:flex-row gap-8 items-center">
+                <div class="md:w-1/2 grid grid-cols-2 gap-4">
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <i class="fas fa-list-ol text-blue-400 text-xl mb-2"></i>
+                        <h4 class="font-bold text-sm">Numeración</h4>
+                        <p class="text-[11px] text-slate-400">TCP numera cada bolsita/paquete antes de enviarlo (1, 2, 3...) para saber el orden correcto.</p>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <i class="fas fa-redo text-blue-400 text-xl mb-2"></i>
+                        <h4 class="font-bold text-sm">Control de Pérdidas</h4>
+                        <p class="text-[11px] text-slate-400">Si el paquete 3 se pierde en el océano, TCP le avisa al emisor que lo vuelva a mandar de inmediato.</p>
+                    </div>
+                </div>
+                <div class="md:w-1/2 space-y-4">
+                    <p class="text-base text-slate-200 leading-relaxed">
+                        Mientras que IP se encarga de dirigir las cajas, **TCP (Transmission Control Protocol)** es el supervisor que se asegura de que todo llegue completo y ordenado.
+                    </p>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Cuando los paquetes llegan al celular receptor, suelen llegar desordenados debido a que tomaron diferentes rutas. El protocolo TCP los recibe, los vuelve a ordenar según su número y los ensambla para mostrar la imagen perfecta en tu pantalla.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 5: Preguntas de Reflexión -->
+    <div class="slide" id="slide-5">
+        <h2 class="text-4xl font-bold mb-6 text-blue-400">Preguntas para Pensar en Clase</h2>
+        <div class="card border-l-4 border-blue-500">
+            <div class="space-y-8 text-left py-4">
+                <div class="flex items-center gap-6">
+                    <i class="fas fa-hourglass-half text-4xl text-blue-500"></i>
+                    <p class="text-lg font-semibold">¿Por qué a veces un video de YouTube se detiene, muestra un círculo cargando y de repente continúa? ¿Qué estará haciendo el protocolo TCP en ese momento?</p>
+                </div>
+                <div class="flex items-center gap-6">
+                    <i class="fas fa-road text-4xl text-blue-500"></i>
+                    <p class="text-lg font-semibold">Si un tiburón muerde un cable de fibra óptica submarino en el océano, ¿por qué internet no se corta en todo el mundo y sigue funcionando?</p>
+                </div>
+                <div class="flex items-center gap-6">
+                    <i class="fas fa-envelope-open-text text-4xl text-blue-500"></i>
+                    <p class="text-lg font-semibold">Si tuvieras que enviar un mensaje ultra secreto... ¿crees que la división en paquetes lo hace más seguro o más inseguro frente a un espía?</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Actividad de Tarea -->
+    <div class="slide" id="slide-6">
+        <div class="card border-blue-500 border-2">
+            <h1 class="text-3xl font-extrabold mb-3 gradient-text">Misión: Logística del Mensaje</h1>
+            <p class="text-xs mb-4 text-slate-300 italic">En parejas o equipos de hasta 3 integrantes. Desarrollen las consignas utilizando el pensamiento lógico y búsquedas simples.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                <div class="bg-gray-900/60 p-4 rounded-xl border border-blue-500/20 content-scroll" style="max-height: 48vh; overflow-y: auto;">
+                    <h4 class="font-bold text-blue-400 mb-3 text-sm"><i class="fas fa-list-ol mr-2"></i>Consignas de Trabajo:</h4>
+                    <ol class="text-xs space-y-4 list-decimal list-inside text-slate-300">
+                        <li>
+                            <strong>La Analogía de la Carta (Razonamiento):</strong>
+                            <p class="text-[11px] text-slate-400 ml-4 mt-1">
+                                Si un paquete de datos es como una carta enviada por correo postal: *¿Qué parte del paquete de datos representaría la dirección escrita en el sobre, qué parte sería la carta en sí escrita en papel, y qué parte sería el número de página (Pág. 1 de 3) para que no se mezclen?* Expliquen la comparación con sus palabras.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>El Paquete Perdido (Razonamiento):</strong>
+                            <p class="text-[11px] text-slate-400 ml-4 mt-1">
+                                Imaginen que están descargando una foto grupal de sus amigos. Durante la transmisión, un paquete que contenía los ojos de tu mejor amigo se perdió debido a una falla del Wi-Fi de la escuela. Expliquen: *¿Cómo actúan los protocolos TCP e IP para solucionar este problema sin que tengas que descargar toda la foto de nuevo?*
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Buscando mi Identificación (Investigación Rápida):</strong>
+                            <p class="text-[11px] text-slate-400 ml-4 mt-1">
+                                Entren al buscador del navegador de su computadora del liceo y busquen: *"¿Cuál es mi IP pública?"*. Copien el número que les aparece en su documento. Luego, busquen en qué país o ciudad dice internet que está registrada esa dirección. ¿Coincide con su ubicación real?
+                            </p>
+                        </li>
+                    </ol>
+                </div>
+                <div class="bg-gray-900/60 p-4 rounded-xl border border-blue-500/20 flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-cyan-400 mb-2 text-sm"><i class="fas fa-clipboard-check mr-2"></i>Pautas de Entrega de la Tarea:</h4>
+                        <ul class="text-xs space-y-3 text-slate-300">
+                            <li><i class="fas fa-id-card text-blue-400 mr-2"></i><strong>Carátula Formal:</strong> El documento o presentación debe tener visibles el nombre de la **Asignatura**, los **Nombres** de los integrantes y la **Fecha** de hoy.</li>
+                            <li><i class="fas fa-images text-blue-400 mr-2"></i><strong>Apoyo Gráfico:</strong> Agreguen esquemas, dibujos sencillos del flujo de paquetes o una **captura de pantalla** de la prueba donde encontraron su IP pública.</li>
+                            <li><i class="fas fa-file-upload text-blue-400 mr-2"></i><strong>Entrega:</strong> Subir el archivo (en formato PDF o link de Canva/Google Slides) a la plataforma educativa indicada.</li>
+                        </ul>
+                    </div>
+                    <div class="mt-4 p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-center text-[11px] text-blue-400 font-semibold">
+                        <i class="fas fa-brain mr-1"></i> Recuerden utilizar el sentido común y la lógica para explicar los procesos.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()"><i class="fas fa-chevron-left mr-2"></i>Atrás</button>
+        <button class="btn-nav" onclick="nextSlide()">Siguiente<i class="fas fa-chevron-right ml-2"></i></button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progress = document.getElementById('progress');
+
+        function updateProgress() {
+            const percent = ((currentSlide + 1) / slides.length) * 100;
+            progress.style.width = percent + '%';
+        }
+
+        function showSlide(index) {
+            slides.forEach(s => s.classList.remove('active'));
+            slides[index].classList.add('active');
+            updateProgress();
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        updateProgress();
+    </script>
+</body>
+</html>
